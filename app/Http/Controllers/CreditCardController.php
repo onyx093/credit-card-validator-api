@@ -74,9 +74,9 @@ class CreditCardController extends Controller
 
         if (str_contains($cardTypeDigits, '34') || str_contains($cardTypeDigits, '37')) {
             return 'amex';
-        } elseif (str_contains($cardTypeDigits, '4')) {
+        } elseif (str_starts_with($cardNumber, '4')) {
             return 'visa';
-        } elseif (str_contains($cardTypeDigits, '5')) {
+        } elseif (str_starts_with($cardNumber, '5')) {
             return 'mastercard';
         }
 
