@@ -44,12 +44,42 @@ class CreditCardController extends Controller
                     }
                 },
             ],
-            'cvv' => ['required', 'numeric', 'digits_between:3,4'],
+            'cvv' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($request){
+                    $cardType = $this->getCardType($request->input('creditCardNumber'));
+                    if ($cardType === 'amex') {
+                        if (strlen($value) !== 4) {
+                            $fail('The :attribute must be a 4-digit number for American Express cards.');
+                        }
+                    } else {
+                        if (strlen($value) !== 3) {
+                            $fail('The :attribute must be a 3-digit number.');
+                        }
+                    }
+                }
+            ],
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
         return response()->json([...$validator->validated(), 'validation_success' => 'true'], 200);
+    }
+
+    private function getCardType($cardNumber)
+    {
+        $cardTypeDigits = substr($cardNumber, 0, 2);
+
+        if (str_contains($cardTypeDigits, '34') || str_contains($cardTypeDigits, '37')) {
+            return 'amex';
+        } elseif (str_contains($cardTypeDigits, '4')) {
+            return 'visa';
+        } elseif (str_contains($cardTypeDigits, '5')) {
+            return 'mastercard';
+        }
+
+        return 'unknown';
     }
 }
